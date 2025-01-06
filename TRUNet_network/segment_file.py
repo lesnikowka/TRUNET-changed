@@ -47,6 +47,7 @@ from scipy.ndimage import zoom
 import time
 import argparse
 from scipy.ndimage import label
+#from skimage.transform import resize
 
 if not os.path.exists("clusterization_result"):
     os.makedirs("clusterization_result")
@@ -254,7 +255,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Script description")
 
-    parser.add_argument("image_path", help="Path to the image")
+    parser.add_argument("--image_path", help="Path to the image")
+    parser.add_argument("--image_path_numpy", default=None, help="Path to the numpy array")
     parser.add_argument("--unet", action="store_true", help="Use unet network")
     parser.add_argument("--cpu", action="store_true", help="Use CPU")
     parser.add_argument("--gpu", action="store_true", help="Use GPU")
@@ -290,10 +292,22 @@ if __name__ == "__main__":
         saveImg = True
         print('Image will be resaved as .nii.gz file')
 
-
+    img, savePath = None, None
+    
     ################################################################################################
     # load the dataset
-    img, savePath = load_ct_image(imagePath)
+    if args.image_path_numpy is None:
+        img, savePath = load_ct_image(imagePath)   
+    else:
+        img = np.load(args.image_path_numpy).astype('float64')
+        img = img[:,:,:,0]
+        img = np.swapaxes(img, 0, 1)
+        img = np.swapaxes(img, 1, 2)
+        #img = np.swapaxes(img, 0, 1)
+        print("img.shape after swap: ", img.shape)
+        #img = resize(img, (IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE), order=0, anti_aliasing=False)
+        savePath = os.getcwd()
+    print(img.shape, savePath)
 
     ################################################################################################
     # load the model

@@ -5,3 +5,6 @@ logs
 *.pth
 models
 *.gz
+*.npy
+*.npz
+*.pth

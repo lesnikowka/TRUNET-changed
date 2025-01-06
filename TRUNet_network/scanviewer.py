@@ -2,6 +2,7 @@ import nibabel as nib
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+from skimage.transform import resize
 
 # Пути к файлам
 prediction_path = "trunet_segmentation.nii.gz"
@@ -14,6 +15,10 @@ nifti_label = nib.load(label_path)
 # Преобразование данных в NumPy массив
 data_prediction = nifti_prediction.get_fdata()
 data_label = nifti_label.get_fdata()
+
+print(data_prediction.shape, data_label.shape)
+
+data_label = resize(data_label, data_prediction.shape, anti_aliasing=False, order=0)
 
 # Транспонирование для корректного отображения срезов
 data_prediction = np.swapaxes(data_prediction, 0, 2)
