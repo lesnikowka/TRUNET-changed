@@ -141,7 +141,8 @@ def get_model(network, modelDirectory, device=device):
     if network == 'trunet':
 
         config_net = trunetConfigs('3d', IMAGE_SIZE)
-        model = TRUNet(config_net, img_size=IMAGE_SIZE, num_classes=numClasses)
+        config_net.n_classes = numClasses
+        model = TRUNet(config_net, img_size=IMAGE_SIZE)
 
     elif network == 'unet':
         model = MONAIUNet(
