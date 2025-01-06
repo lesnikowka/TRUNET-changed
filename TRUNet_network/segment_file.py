@@ -39,8 +39,8 @@ import nibabel as nib
 from glob import glob
 import pydicom
 import numpy as np
-from TRUNet_network.configs import trunetConfigs
-from TRUNet_network.model.ViT import VisionTransformer3d as TRUNet
+from configs import trunetConfigs
+from model.ViT import VisionTransformer3d as TRUNet
 import torch
 from monai.networks.nets import UNet as MONAIUNet
 from scipy.ndimage import zoom
@@ -48,7 +48,10 @@ import time
 import argparse
 from scipy.ndimage import label
 
-numClasses = 7
+if not os.path.exists("clusterization_result"):
+    os.makedirs("clusterization_result")
+
+numClasses = 8
 device = 'cpu'
 network = 'trunet'
 resize = False
@@ -58,6 +61,7 @@ saveImg = False
 crop = False
 threshold = 1000000
 
+IMAGE_SIZE = 64
 
 def parse_size(size_arg):
     try:
@@ -136,8 +140,8 @@ def load_ct_image(imagePath):
 def get_model(network, modelDirectory, device=device):
     if network == 'trunet':
 
-        config_net = trunetConfigs('3d', 224)
-        model = TRUNet(config_net, img_size=224, num_classes=numClasses)
+        config_net = trunetConfigs('3d', IMAGE_SIZE)
+        model = TRUNet(config_net, img_size=IMAGE_SIZE, num_classes=numClasses)
 
     elif network == 'unet':
         model = MONAIUNet(
@@ -161,7 +165,7 @@ def get_model(network, modelDirectory, device=device):
 
 def test_single_volume(image, net, device=device, newImageShape=imageSize):
     # input to the model should be of shape 1,1,224,224
-    patch_size = [224, 224, 224]
+    patch_size = [IMAGE_SIZE, IMAGE_SIZE, IMAGE_SIZE]
     with torch.no_grad():
         x, y, z = image.shape[0], image.shape[1], image.shape[2]
         image = zoom(image, (patch_size[0] / x, patch_size[1] / y, patch_size[2] / z), order=3)  # previous using 0

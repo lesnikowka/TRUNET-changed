@@ -18,6 +18,9 @@ save_path = './logs/run_' + now.strftime("%m%d%Y_%H%M%S")
 
 print(save_path)
 
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+
 if not os.path.exists(save_path):
     os.makedirs(save_path)
 
