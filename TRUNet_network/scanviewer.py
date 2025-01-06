@@ -3,41 +3,52 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-# Путь к файлу
+# Пути к файлам
 prediction_path = "trunet_segmentation.nii.gz"
+label_path = "ct_train_1001_label.nii.gz"
 
-# Загрузка файла с помощью nibabel
-nifti = nib.load(prediction_path)
+# Загрузка файлов с помощью nibabel
+nifti_prediction = nib.load(prediction_path)
+nifti_label = nib.load(label_path)
 
 # Преобразование данных в NumPy массив
-data = nifti.get_fdata()
+data_prediction = nifti_prediction.get_fdata()
+data_label = nifti_label.get_fdata()
 
 # Транспонирование для корректного отображения срезов
-data = np.swapaxes(data, 0, 2)
+data_prediction = np.swapaxes(data_prediction, 0, 2)
+data_label = np.swapaxes(data_label, 0, 2)
 
 # Масштабируем данные для корректного отображения (если нужно)
-data_min, data_max = np.min(data), np.max(data)
+data_min, data_max = np.min(data_prediction), np.max(data_prediction)
 if data_max > 1:
-    data = (data - data_min) / (data_max - data_min)  # Нормализация к [0, 1]
+    data_prediction = (data_prediction - data_min) / (data_max - data_min)
 
 # Начальный индекс среза
 slice_index = 0
 
-# Создание фигуры и отображение начального среза
-fig, ax = plt.subplots()
+# Создание фигуры и начальных изображений
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
 plt.subplots_adjust(bottom=0.2)  # Добавляем место для слайдера
-image = ax.imshow(data[slice_index], cmap="gray", vmin=0, vmax=1)
-ax.set_title(f"Slice {slice_index}")
+
+# Отображение начального среза
+image1 = ax1.imshow(data_label[slice_index], vmin=0, vmax=np.max(data_label))
+ax1.set_title(f"Label: Slice {slice_index}")
+
+image2 = ax2.imshow(data_prediction[slice_index], vmin=0, vmax=1)
+ax2.set_title(f"Prediction: Slice {slice_index}")
 
 # Добавление слайдера
 ax_slider = plt.axes([0.25, 0.1, 0.5, 0.03], facecolor="lightgoldenrodyellow")
-slider = Slider(ax_slider, "Slice", 0, data.shape[0] - 1, valinit=slice_index, valstep=1)
+slider = Slider(ax_slider, "Slice", 0, data_prediction.shape[0] - 1, valinit=slice_index, valstep=1)
 
 # Функция обновления среза
 def update(val):
     slice_idx = int(slider.val)  # Получаем текущее значение слайдера
-    image.set_data(data[slice_idx])  # Обновляем изображение
-    ax.set_title(f"Slice {slice_idx}")  # Обновляем заголовок
+    image1.set_data(data_label[slice_idx])  # Обновляем изображение для label
+    ax1.set_title(f"Label: Slice {slice_idx}")
+    image2.set_data(data_prediction[slice_idx])  # Обновляем изображение для prediction
+    ax2.set_title(f"Prediction: Slice {slice_idx}")
     fig.canvas.draw_idle()  # Перерисовываем фигуру
 
 # Связываем слайдер с функцией обновления
