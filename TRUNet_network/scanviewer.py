@@ -3,18 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 from skimage.transform import resize
+from skimage.morphology import binary_dilation, binary_erosion, disk, ball
 
 # Пути к файлам
 prediction_path = "trunet_segmentation.nii.gz"
-label_path = "ct_train_1001_label.nii.gz"
+label_path = "1_mask.npy"
 
 # Загрузка файлов с помощью nibabel
 nifti_prediction = nib.load(prediction_path)
-nifti_label = nib.load(label_path)
 
 # Преобразование данных в NumPy массив
 data_prediction = nifti_prediction.get_fdata()
-data_label = nifti_label.get_fdata()
+data_label = np.load(label_path)
+data_label = data_label[:,:,:,0]
 
 print(data_prediction.shape, data_label.shape)
 
@@ -23,6 +24,12 @@ data_label = resize(data_label, data_prediction.shape, anti_aliasing=False, orde
 # Транспонирование для корректного отображения срезов
 data_prediction = np.swapaxes(data_prediction, 0, 2)
 data_label = np.swapaxes(data_label, 0, 2)
+
+print(data_prediction.shape, data_label.shape)
+
+selem = ball(1)
+#data_prediction = binary_dilation(data_prediction, selem)  # Расширение границ
+#data_prediction = binary_erosion(data_prediction, selem) 
 
 # Масштабируем данные для корректного отображения (если нужно)
 data_min, data_max = np.min(data_prediction), np.max(data_prediction)
